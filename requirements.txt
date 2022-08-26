@@ -1,0 +1,4 @@
+selenium~=4.3.0
+names
+requests~=2.28.1
+transliterate~=1.10.2
