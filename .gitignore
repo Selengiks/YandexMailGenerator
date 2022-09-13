@@ -1,6 +1,7 @@
 /venv
 /.idea
 /history
-login.txt
+old/login.txt
 input.txt
 output.txt
+config.py
