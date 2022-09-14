@@ -1,6 +1,7 @@
 /venv
 /.idea
 /history
+/bot/donors
 old/login.txt
 input.txt
 output.txt

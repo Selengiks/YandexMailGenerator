@@ -1,14 +1,10 @@
 from loguru import logger
-from aiogram import Bot, Dispatcher, executor, types
+from aiogram import Dispatcher, executor, types
+from support.bots import dp, bot
 
 from support.dbmanager import mongo
 from support.middleware import ClassicMiddleware, LoguruMiddleware
-
-import config as cfg
-
-# Initialize bot and dispatcher
-bot = Bot(token=cfg.TOKEN)
-dp = Dispatcher(bot)
+import bot
 
 dp.middleware.setup(ClassicMiddleware())
 dp.middleware.setup(LoguruMiddleware())  # ALL LOGGING
@@ -21,16 +17,6 @@ async def errors(update: types.Update, error: Exception):
     except Exception as e:
         logger.exception(e)
     return True
-
-
-@dp.message_handler(commands=['start', 'help'])
-async def send_welcome(message: types.Message):
-    await message.reply("Hi!\nI'm EchoBot!\nPowered by aiogram.")
-
-
-@dp.message_handler()
-async def echo(message: types.Message):
-    await message.answer(message.text)
 
 
 async def on_startup(dp: Dispatcher):

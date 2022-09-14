@@ -77,8 +77,14 @@ class ClassicMiddleware(BaseMiddleware):
         user_db._id = user.id
         user_db.name = user.full_name
         user_db.username = user.username or None
-        user_db.role = True if user.id in cfg.admins else False
-        user_db.language = "ru"
+        # user_db.role = True if user.id in cfg.admins else False
+        if user.id in cfg.superadmins:
+            user_db.role = "Superadmin"
+        elif user.id in cfg.admins:
+            user_db.role = "Admin"
+        else:
+            user_db.role = "User"
+        user_db.language = user.language_code
         user_db.fsm = str()
         user_db.update_counter = 1
         user_db.to_pm = to_pm
@@ -86,7 +92,7 @@ class ClassicMiddleware(BaseMiddleware):
         user_db.last_online = dt.datetime.now()
 
         await db_users.insert_one(user_db)
-        logger.debug(f"Новый пользователь {user_db.name} [{user_db._id}]")
+        logger.debug(f"Новый пользователь {user_db.name} [{user_db._id}], role [{user_db.role}]")
 
         return user_db
 
