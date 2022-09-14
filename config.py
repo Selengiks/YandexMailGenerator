@@ -7,9 +7,10 @@ logger.add(stdout, colorize=True, format="<green>{time:DD.MM.YY H:mm:ss}</green>
                                          "message}</cyan>")
 
 with open("config_data.txt", "r") as locfile:
-    TOKEN = locfile.readline()
-    MONGO_URI = locfile.readline()
-    MONGO_DB = locfile.readline()
+    lines = locfile.readlines()
+    TOKEN = lines[0].strip()
+    MONGO_URI = lines[1].strip()
+    MONGO_DB = lines[2].strip()
 
 
 # local_server_url = "http://127.0.0.1:8888"

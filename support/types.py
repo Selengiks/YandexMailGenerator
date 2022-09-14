@@ -15,6 +15,7 @@ class UserType(dict):
     username: Union[str, None]
     role: str
     language: str
+    ban: bool
     fsm: str
     update_counter: int
     to_pm: bool

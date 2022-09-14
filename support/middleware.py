@@ -1,8 +1,6 @@
 import datetime as dt
 import time
-from typing import Tuple, Union
-
-from aiogram.types.message import Message
+from typing import Union
 
 import config as cfg
 from aiogram import types
@@ -35,7 +33,7 @@ class ClassicMiddleware(BaseMiddleware):
     async def on_post_process_message(self, message: types.Message, results, data: dict):
         pass
 
-    async def validate(self, update: Union[types.Message, types.CallbackQuery]) -> Tuple[UserType]:
+    async def validate(self, update: Union[types.Message, types.CallbackQuery]) -> UserType:
 
         if isinstance(update, types.CallbackQuery):
             User = update.from_user
@@ -48,9 +46,6 @@ class ClassicMiddleware(BaseMiddleware):
             raise CancelHandler()
 
         user = await self.get_user(User, update)
-
-        if user.ban:
-            raise CancelHandler()
 
         return user
 
@@ -82,10 +77,8 @@ class ClassicMiddleware(BaseMiddleware):
         user_db._id = user.id
         user_db.name = user.full_name
         user_db.username = user.username or None
+        user_db.role = True if user.id in cfg.admins else False
         user_db.language = "ru"
-        user_db.admin = True if user.id in cfg.admins else False
-        user_db.ban = False
-        user_db.warn = dict()
         user_db.fsm = str()
         user_db.update_counter = 1
         user_db.to_pm = to_pm

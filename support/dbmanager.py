@@ -4,6 +4,7 @@ from loguru import logger
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from config import mongo_uri, mongo_db
 
+
 class FastMongo:
     """
     Need to close Mongo client connections when shutdown
@@ -45,5 +46,6 @@ class FastMongo:
 
     async def wait_closed(self):
         return True
+
 
 mongo = FastMongo()
