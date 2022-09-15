@@ -14,6 +14,8 @@ class UserType(dict):
     name: str
     username: Union[str, None]
     role: str
+    mail: str
+    password: str
     language: str
     ban: bool
     fsm: str

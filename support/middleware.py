@@ -10,7 +10,7 @@ from aiogram.types import ChatType as AioChatType
 from loguru import logger
 
 from support.dbmanager import mongo
-from support.types import UserType
+from support.ttypes import UserType
 
 HANDLED_STR = ['Unhandled', 'Handled']
 
@@ -67,7 +67,7 @@ class ClassicMiddleware(BaseMiddleware):
             user_db.update_counter += 1
             user_db.last_online = dt.datetime.now()
             user_db.name = user.full_name
-            user_db.username = user.username or None
+            user_db.username = f'@{user.username}' or None
             user_db.to_pm = to_pm
             await user_db.save()
             return user_db
@@ -76,14 +76,19 @@ class ClassicMiddleware(BaseMiddleware):
 
         user_db._id = user.id
         user_db.name = user.full_name
-        user_db.username = user.username or None
-        # user_db.role = True if user.id in cfg.admins else False
+        user_db.username = f'@{user.username}' or None
         if user.id in cfg.superadmins:
             user_db.role = "Superadmin"
+            user_db.mail = "superadmin@traffbraza.com"
+            user_db.password = "super"
         elif user.id in cfg.admins:
             user_db.role = "Admin"
+            user_db.mail = "admin@traffbraza.com"
+            user_db.password = "admin"
         else:
             user_db.role = "User"
+            user_db.mail = "user@traffbraza.com"
+            user_db.password = "user"
         user_db.language = user.language_code
         user_db.fsm = str()
         user_db.update_counter = 1
