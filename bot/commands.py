@@ -14,14 +14,47 @@ logger.debug("Bot commands module loaded")
 
 
 class TrapLevel:
-    pass
+
+    @dp.message_handler(
+        chat_type=[types.ChatType.PRIVATE],
+        commands="set_role"
+    )
+    async def set_role(self):
+        pass
 
 
 """====================    Admin level     ===================="""
 
 
 class AdminLevel:
-    pass
+
+    @dp.message_handler(
+        chat_type=[types.ChatType.PRIVATE],
+        commands="list_user"
+    )
+    async def list_user(self):
+        pass
+
+    @dp.message_handler(
+        chat_type=[types.ChatType.PRIVATE],
+        commands="add_used"
+    )
+    async def add_used(self):
+        pass
+
+    @dp.message_handler(
+        chat_type=[types.ChatType.PRIVATE],
+        commands="edit_user"
+    )
+    async def edit_user(self):
+        pass
+
+    @dp.message_handler(
+        chat_type=[types.ChatType.PRIVATE],
+        commands="del_user"
+    )
+    async def del_user(self):
+        pass
 
 
 """====================     User level     ===================="""
@@ -31,77 +64,92 @@ class UserLevel:
 
     @dp.message_handler(
         chat_type=[types.ChatType.PRIVATE],
-        commands="start"
-    )
-    async def send_welcome(message: types.Message):
-        botinfo = await dp.bot.me
-        await message.reply(f'Привет, я {botinfo.full_name}\n')
-
-    @dp.message_handler(
-        chat_type=[types.ChatType.PRIVATE],
         commands="profile"
     )
     async def get_userinfo(message: types.Message):
-        result = None
+        sender = await user_check(message, message.from_user.id)
+        target = None
         user = {"id": int(), "name": None, "username": None, "role": None, "mail": None, "password": None}
-        for ent in message.entities:
-            if ent.type == MessageEntityType.TEXT_MENTION:  # for user without username
-                user_db = await call_db(message, "id", ent.user.id)
-                result = await user_check(message, user_db._id)
-                user["id"] = user_db._id
-                user["name"] = user_db.name
-                user["username"] = "no username"
-                user["role"] = user_db.role
-                user["mail"] = user_db.mail
-                user["password"] = user_db.password
+        if len(message.text.split(" ")) == 1:
+            user_db = await call_db(message, "_id", message.from_user.id)
+            target = await user_check(message, user_db._id)
+            user["id"] = user_db._id
+            user["name"] = user_db.name
+            user["username"] = user_db.username
+            user["role"] = user_db.role
+            user["mail"] = user_db.mail
+            user["password"] = user_db.password
+        else:
+            for ent in message.entities:
+                if ent.type == MessageEntityType.TEXT_MENTION:  # for user without username
+                    user_db = await call_db(message, "id", ent.user.id)
+                    target = await user_check(message, user_db._id)
+                    user["id"] = user_db._id
+                    user["name"] = user_db.name
+                    user["username"] = "no username"
+                    user["role"] = user_db.role
+                    user["mail"] = user_db.mail
+                    user["password"] = user_db.password
 
-            if ent.type == MessageEntityType.MENTION:  # for user with username
-                search_user = message.text.split(" ")[1]
-                user_db = await call_db(message, "username", search_user)
-                result = await user_check(message, user_db._id)
-                user["id"] = user_db._id
-                user["name"] = user_db.name
-                user["username"] = user_db.username
-                user["role"] = user_db.role
-                user["mail"] = user_db.mail
-                user["password"] = user_db.password
+                if ent.type == MessageEntityType.MENTION:  # for user with username
+                    search_user = message.text.split(" ")[1]
+                    user_db = await call_db(message, "username", search_user)
+                    target = await user_check(message, user_db._id)
+                    user["id"] = user_db._id
+                    user["name"] = user_db.name
+                    user["username"] = user_db.username
+                    user["role"] = user_db.role
+                    user["mail"] = user_db.mail
+                    user["password"] = user_db.password
 
-        if result is None:
+        if target is None:
             await message.reply("Пользователь не найден")
             return False
 
-        elif result:
-            if message.from_user.id in cfg.superadmins:
-                await message.reply(f'Id: {md.hcode(user["id"])}\nName: {md.hcode(user["name"])}\n'
-                                    f'Username: {md.hcode(user["username"])}\nRole: {md.hcode(user["role"])}\n'
-                                    f'Mail: {md.hcode(user["mail"])}\nPassword: {md.hcode(user["password"])}')
-
-            elif message.from_user.id in cfg.admins:
-                await message.reply(f'Id: {md.hcode(user["id"])}\nName: {md.hcode(user["name"])}\n'
-                                    f'Username: {md.hcode(user["username"])}\nRole: {md.hcode(user["role"])}\n'
-                                    f'Mail: {md.hcode(user["mail"])}\nPassword: {md.hcode(user["password"])}')
-
+        elif sender == "superadmin" or sender == "admin":
+            if len(message.text.split(" ")) == 1:
+                key = "_id"
+                search_user = message.from_user.id
             else:
+                key = "username"
+                search_user = message.text.split(" ")[1]
+            user_db = await call_db(message, key, search_user)
+            await message.reply(f'Id: {md.hcode(user_db._id)}\nName: {md.hcode(user_db.name)}\n'
+                                f'Username: {md.hcode(user_db.username)}\nRole: {md.hcode(user_db.role)}\n'
+                                f'Mail: {md.hcode(user_db.mail)}\nPassword: {md.hcode(user_db.password)}')
+
+        elif sender == "user":
+            user_db = await call_db(message, "_id", message.from_user.id)
+            if len(message.text.split(" ")) == 1 or message.text.split(" ")[1] == user_db.username:
                 user_db = await call_db(message, "_id", message.from_user.id)
-                if message.text.split(" ")[1] == user_db.username:
-                    await message.reply(f'Id: {md.hcode(user["id"])}\nName: {md.hcode(user["name"])}\n'
-                                        f'Username: {md.hcode(user["username"])}\nRole: {md.hcode(user["role"])}\n'
-                                        f'Mail: {md.hcode(user["mail"])}\nPassword: {md.hcode(user["password"])}')
-                else:
-                    await message.reply(f'Id: {md.hcode(user["id"])}\nName: {md.hcode(user["name"])}\n'
-                                        f'Username: {md.hcode(user["username"])}\nRole: {md.hcode(user["role"])}\n')
-            return False
+                await message.reply(f'Id: {md.hcode(user_db._id)}\nName: {md.hcode(user_db.name)}\n'
+                                    f'Username: {md.hcode(user_db.username)}\nRole: {md.hcode(user_db.role)}\n'
+                                    f'Mail: {md.hcode(user_db.mail)}\nPassword: {md.hcode(user_db.password)}')
+            elif message.text.split(" ")[1] is not user["username"]:
+                user_db = await call_db(message, "username", message.text.split(" ")[1])
+                await message.reply(f'Id: {md.hcode(user_db._id)}\nName: {md.hcode(user_db.name)}\n'
+                                    f'Username: {md.hcode(user_db.username)}\nRole: {md.hcode(user_db.role)}\n')
 
         else:
             await message.reply("get_userinfo return None")
             return False
 
-    @dp.message_handler()
-    async def echo(message: types.Message):
-        await message.answer(message.text)
-
 
 """====================   Service level    ===================="""
+
+
+@dp.message_handler(
+    chat_type=[types.ChatType.PRIVATE],
+    commands="start"
+)
+async def send_welcome(message: types.Message):
+    botinfo = await dp.bot.me
+    await message.reply(f'Привет, я {botinfo.full_name}\n')
+
+
+@dp.message_handler()
+async def echo(message: types.Message):
+    await message.answer(message.text)
 
 
 async def call_db(message: types.Message, key, value):
@@ -117,8 +165,8 @@ async def call_db(message: types.Message, key, value):
 
 async def user_check(message: types.Message, id: int) -> Union[str, bool]:
     if id in cfg.superadmins:
-        return "Нельзя трогать няшку"
+        return "superadmin"
     if id in cfg.admins:
-        return "Нельзя трогать админа"
+        return "admin"
     else:
-        return "Юзера трогать можно"
+        return "user"
