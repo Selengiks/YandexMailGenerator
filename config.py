@@ -1,5 +1,6 @@
 from loguru import logger
 from sys import stdout
+import config_data
 
 logger.remove()
 logger.add(stdout, colorize=True, format="<green>{time:DD.MM.YY H:mm:ss}</green> "
@@ -8,20 +9,14 @@ logger.add(stdout, colorize=True, format="<green>{time:DD.MM.YY H:mm:ss}</green>
 
 logger.debug("Bot connection establish")
 
-with open("config_data.txt", "r") as locfile:
-    lines = locfile.readlines()
-    TOKEN = lines[0].strip()
-    MONGO_URI = lines[1].strip()
-    MONGO_DB = lines[2].strip()
+TOKEN = config_data.BOT_TOKEN
+API_TOKEN = config_data.YANDEX_OAUTH_TOKEN
+ORG_ID = config_data.ORG_ID
+PROXIES = config_data.PROXIES
 
 # local_server_url = "http://127.0.0.1:8888"
 local_server_url = None
 
-mongo_uri = MONGO_URI
-mongo_db = MONGO_DB
-user_collection = "Users"
-
-superadmins = [290522978]  # superadmins
-admins = [570477907]  # admins
+admins = [290522978]  # admins
 
 GLOBAL_DELAY = .09

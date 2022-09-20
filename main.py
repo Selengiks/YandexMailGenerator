@@ -2,11 +2,10 @@ from loguru import logger
 from aiogram import Dispatcher, executor, types
 from support.bots import dp, bot
 
-from support.dbmanager import mongo
-from support.middleware import ClassicMiddleware, LoguruMiddleware
+
+from support.middleware import LoguruMiddleware
 import bot
 
-dp.middleware.setup(ClassicMiddleware())
 dp.middleware.setup(LoguruMiddleware())  # ALL LOGGING
 
 @dp.errors_handler()
@@ -26,8 +25,6 @@ async def on_startup(dp: Dispatcher):
 
 async def on_shutdown(dp: Dispatcher):
     logger.warning('Выключаюсь..')
-    await mongo.close()
-    await mongo.wait_closed()
     await bot.close()
 
 

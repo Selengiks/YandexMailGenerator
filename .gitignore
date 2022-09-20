@@ -1,8 +1,5 @@
 /venv
 /.idea
-/history
-/bot/donors
-old/login.txt
-input.txt
-output.txt
-config_data.txt
+/.excluded
+config_data_priv.py
+test_requests.py
