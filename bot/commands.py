@@ -9,10 +9,37 @@ logger.debug("Bot commands module loaded")
 
 """====================    Admin layer     ===================="""
 
+sudo = cfg.superadmins
+
+
+# Хендлер и метод на добавление админов этого бота
+@dp.message_handler(
+    user_id=sudo,
+    chat_type=[types.ChatType.PRIVATE],
+    commands="set_admin"
+)
+async def set_admin(message: types.Message):
+    id = message.text.split(" ")[1]
+    setAdmin = message.text.split(" ")[2]
+
+    try:
+        if setAdmin == "True":
+            await add_admin(id)
+        else:
+            await del_admin(id)
+
+        result = f'Права юзера {md.hcode(id)} в боте изменены.\n'
+
+    except Exception:
+        result = f'Случилась ошибка при попытке выполнить /set_admin {id}\n\n' \
+                 'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
+
+    await message.reply(result)
+
 
 class AdminLayer:
-
-    admin_id = cfg.admins
+    with open("admins.txt", "r") as admins:
+        admin_id = admins.readlines()
 
     @dp.message_handler(
         user_id=admin_id,
@@ -76,7 +103,7 @@ class AdminLayer:
 
             result = f'Пользователь {self.text.split(" ")[1]} {self.text.split(" ")[2]} успешно добавлен\n\n' \
                      f'Данные:\nИмя: {first}\nФамилия: {last}\n' \
-                     f'Почта: {md.hcode(user["user"][0])}\nПароль: {md.hcode(user["user"][1])}'
+                     f'Почта: {md.hcode(user["user"][0] + "@traffbraza.com")}\nПароль: {md.hcode(user["user"][1])}'
 
         except Exception:
             result = 'Случилась ошибка при попытке выполнить /add_user {Имя} {Фамилия}\n\n' \
@@ -160,3 +187,20 @@ async def send_welcome(message: types.Message):
 async def echo(message: types.Message):
     result = f'Неопознанная команда\n\n{message.text}'
     await message.answer(result)
+
+
+async def add_admin(id):
+    with open(cfg.filename, "a+") as f:
+        f.writelines(id)
+
+
+async def del_admin(id):
+    with open(cfg.filename, "r+") as f:
+        d = f.readlines()
+        f.seek(0)
+        for i in d:
+            if i != id:
+                f.write(i)
+        f.truncate()
+
+
