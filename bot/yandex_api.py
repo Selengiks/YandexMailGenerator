@@ -99,7 +99,7 @@ def add_user(first, last):
 
 
 def del_user(id):
-    data = get_user_by_id(id)
+    data = get_user('int', id)
 
     response = requests.delete(
         f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{data["id"]}',
@@ -112,7 +112,7 @@ def del_user(id):
 
 
 def edit_user(id, payload):
-    data = get_user_by_id(id)
+    data = get_user('int', id)
 
     params = payload
 
