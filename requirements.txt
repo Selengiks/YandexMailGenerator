@@ -1,0 +1,10 @@
+addons==0.7
+aiogram==2.11.2
+loguru==0.6.0
+machine2human==0.0.1rc2
+motor==2.3.0
+pymongo==3.11.2
+requests==2.25.1
+selenium==4.4.3
+transliterate==1.10.2
+webdriver_manager==3.8.2
