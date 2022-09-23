@@ -55,7 +55,7 @@ class AdminLayer:
             'isAdmin': setAdmin
         }
 
-        user = yapi.get_user_by_id(id)
+        user = yapi.get_user('int', id)
         yapi.edit_user(id, payload)
 
         try:
@@ -127,7 +127,7 @@ class AdminLayer:
     async def del_user(self: types.Message):
 
         id = self.text.split(" ")[1]
-        user = yapi.get_user_by_id(id)
+        user = yapi.get_user('int', id)
 
         try:
             if user["isAdmin"] == True:
@@ -155,12 +155,24 @@ class UserLayer:
     )
     async def get_user(self: types.Message):
 
-        id = self.text.split(" ")[1]
-        user = yapi.get_user_by_id(id)
+        user = None
+
+        if len(self.text.split(" ")) == 2:
+            param1 = self.text.split(" ")[1]
+            if param1.isdigit():
+                datatype = 'int'
+            else:
+                datatype = 'str'
+            user = yapi.get_user(datatype, param1)
+
+        elif len(self.text.split(" ")) == 3:
+            param1 = self.text.split(" ")[1]
+            param2 = self.text.split(" ")[2]
+            user = yapi.get_user('str', param1, param2)
 
         try:
 
-            result = f'Пользователь {md.hcode(self.text.split(" ")[1])}\n' \
+            result = f'Пользователь {md.hcode(user["id"])}\n' \
                      f'Имя: {user["name"]["first"]}\nФамилия: {user["name"]["last"]}\n' \
                      f'Почта: {md.hcode(user["email"])}\nАдминистратор: {user["isAdmin"]}'
 
@@ -202,5 +214,3 @@ async def del_admin(id):
             if i != id:
                 f.write(i)
         f.truncate()
-
-

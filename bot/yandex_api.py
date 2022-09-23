@@ -1,6 +1,7 @@
 import random
 import string
 from collections import OrderedDict
+import re
 
 import requests
 import config as cfg
@@ -10,13 +11,12 @@ HEADERS = {
     'User-Agent': 'TBMailBot Agent',
 }
 
-
+PATTERN = re.compile('[A-Za-z0-9._%+-]+@traffbraza\.com')
 
 user_list = OrderedDict()
 
 
 def users():
-
     params = {
         'per_page': 1000,
     }
@@ -37,48 +37,35 @@ def users():
     return user_list
 
 
-def get_user_by_id(id):
+def get_user(datatype, *args):
+    param = ""
+
+    if datatype == 'int':
+        param = args[0]
+
+    else:
+        if PATTERN.match(args[0]):
+            userId = 0
+            data = users()
+
+            for key, value in data.items():
+                if value['email'] == args[0]:
+                    userId = key
+
+            param = userId
+
+        elif len(args) > 1:
+            userId = 0
+            data = users()
+
+            for key, value in data.items():
+                if value['name']['first'] == args[0] and value['name']['last'] == args[1]:
+                    userId = key
+
+            param = userId
 
     response = requests.get(
-        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{id}',
-        headers=HEADERS,
-        proxies=cfg.PROXIES,
-        timeout=10
-    ).json()
-
-    return response
-
-
-def get_user_by_name(first, last):
-
-    userId = 0
-    data = users()
-
-    for key, value in data.items():
-        if value['name']['first'] == first and value['name']['last'] == last:
-            userId = key
-
-    response = requests.get(
-        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{userId}',
-        headers=HEADERS,
-        proxies=cfg.PROXIES,
-        timeout=10
-    ).json()
-
-    return response
-
-
-def get_user_by_mail(mail):
-
-    userId = 0
-    data = users()
-
-    for key, value in data.items():
-        if value['email'] == mail:
-            userId = key
-
-    response = requests.get(
-        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{userId}',
+        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{param}',
         headers=HEADERS,
         proxies=cfg.PROXIES,
         timeout=10
@@ -88,7 +75,6 @@ def get_user_by_mail(mail):
 
 
 def add_user(first, last):
-
     nickname = f'{first.lower()}.{last.lower()}'
     password = create_random_password()
 
@@ -111,8 +97,8 @@ def add_user(first, last):
 
     return out
 
-def del_user(id):
 
+def del_user(id):
     data = get_user_by_id(id)
 
     response = requests.delete(
@@ -126,7 +112,6 @@ def del_user(id):
 
 
 def edit_user(id, payload):
-
     data = get_user_by_id(id)
 
     params = payload
