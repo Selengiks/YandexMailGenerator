@@ -101,9 +101,13 @@ class AdminLayer:
             last = translit(str(self.text.split(" ")[2]), "ru", reversed=True)
             user = yapi.add_user(first, last)
 
-            result = f'Пользователь {self.text.split(" ")[1]} {self.text.split(" ")[2]} успешно добавлен\n\n' \
-                     f'Данные:\nИмя: {first}\nФамилия: {last}\n' \
-                     f'Почта: {md.hcode(user["user"][0] + "@traffbraza.com")}\nПароль: {md.hcode(user["user"][1])}'
+            if user == False:
+                result = f'Пользователь с именем {first}, и фамилией {last} - существует.\n' \
+                         f'Попробуй команду {md.hcode(f"/get_user {first} {last}")}'
+            else:
+                result = f'Пользователь {self.text.split(" ")[1]} {self.text.split(" ")[2]} успешно добавлен\n\n' \
+                         f'Данные:\nИмя: {first}\nФамилия: {last}\n' \
+                         f'Почта: {md.hcode(user["user"][0] + "@traffbraza.com")}\nПароль: {md.hcode(user["user"][1])}'
 
         except Exception:
             result = f'Случилась ошибка при попытке выполнить /add_user {self.get_args()}\n\n' \
@@ -129,17 +133,22 @@ class AdminLayer:
         id = self.text.split(" ")[1]
         user = yapi.get_user(id)
 
-        try:
-            if user["isAdmin"] == True:
-                result = f'Пользователь {md.hcode(id)} имеет права администратора, и не может быть удалён'
+        if user['message'] == 'not_found' or user == False:
+            result = f'Пользователь с id {id} - не существует.\n' \
+                     f'Попробуй команду {md.hcode(f"/get_user {id}")}, чтобы удостовериться.'
+        else:
 
-            else:
-                yapi.del_user(id)
-                result = f'Пользователь {md.hcode(id)} - успешно удалён'
+            try:
+                if user["isAdmin"] == True:
+                    result = f'Пользователь {md.hcode(id)} имеет права администратора, и не может быть удалён'
 
-        except Exception:
-            result = f'Случилась ошибка при попытке выполнить /del_user {self.get_args()}\n\n' \
-                     'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
+                else:
+                    yapi.del_user(id)
+                    result = f'Пользователь {md.hcode(id)} - успешно удалён'
+
+            except Exception:
+                result = f'Случилась ошибка при попытке выполнить /del_user {self.get_args()}\n\n' \
+                         'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
         await self.reply(result)
 
@@ -176,8 +185,8 @@ class UserLayer:
                      f'Почта: {md.hcode(user["email"])}\nАдминистратор: {user["isAdmin"]}'
 
         except Exception:
-            result = f'Случилась ошибка при попытке выполнить /get_user {self.get_args()}\n\n' \
-                     'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
+            result = f'Случилась ошибка при попытке выполнить /get_user {self.get_args()},' \
+                     f' или юзера не существует.\n\nУдостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
         await self.reply(result)
 

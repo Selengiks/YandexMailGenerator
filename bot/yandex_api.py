@@ -79,6 +79,10 @@ def get_user(*args):
 
 
 def add_user(first, last):
+    data = users()
+    for key, value in data.items():
+        if first == value['name']['first'] and last == value['name']['last']:
+            return False
     nickname = f'{first.lower()}.{last.lower()}'
     password = create_random_password()
 
@@ -104,6 +108,9 @@ def add_user(first, last):
 
 def del_user(id):
     data = get_user(id)
+
+    if id not in data:
+        return False
 
     response = requests.delete(
         f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{data[0]}',
