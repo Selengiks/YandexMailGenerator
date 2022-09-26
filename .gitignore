@@ -4,3 +4,4 @@
 config_data_priv.py
 test_requests.py
 admins.txt
+log.txt

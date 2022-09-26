@@ -29,7 +29,8 @@ class LoguruMiddleware(BaseMiddleware):
             self.logger.info(f"Process update [ID:{update.update_id}]: [success] (in {timeout} ms)")
 
     async def on_pre_process_message(self, message: types.Message, data: dict):
-        self.logger.info(f"Received message [ID:{message.message_id}] from user [ID:{message.from_user.id}]")
+        self.logger.info(f"Received message [ID:{message.message_id}] from user [ID:{message.from_user.id}]\n"
+                         f"Username: @{message.from_user.username}\nMessage body: {message.text}\nRaw: {message}")
 
     async def on_post_process_message(self, message: types.Message, results, data: dict):
         self.logger.debug(f"{HANDLED_STR[bool(len(results))]} "

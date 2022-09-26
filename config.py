@@ -5,6 +5,7 @@ from sys import stdout
 import config_data_priv
 
 logger.remove()
+logger.add("log.txt", mode="w")
 logger.add(stdout, colorize=True, format="<green>{time:DD.MM.YY H:mm:ss}</green> "
                                          "| <yellow><b>{level}</b></yellow> | <magenta>{file}</magenta> | <cyan>{"
                                          "message}</cyan>")
@@ -29,8 +30,5 @@ with open(filename, "a+") as admins:
         logger.debug(f'Файл {filename} не существует, потому был создан и заполнен.')
         for i in superadmins:
             admins.write(i + "\n")
-
-
-
 
 GLOBAL_DELAY = .09

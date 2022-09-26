@@ -31,7 +31,7 @@ async def set_admin(message: types.Message):
         result = f'Права юзера {md.hcode(id)} в боте изменены.\n'
 
     except Exception:
-        result = f'Случилась ошибка при попытке выполнить /set_admin {id}\n\n' \
+        result = f'Случилась ошибка при попытке выполнить /set_admin {message.get_args()}\n\n' \
                  'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
     await message.reply(result)
@@ -55,14 +55,14 @@ class AdminLayer:
             'isAdmin': setAdmin
         }
 
-        user = yapi.get_user('int', id)
+        user = yapi.get_user(id)
         yapi.edit_user(id, payload)
 
         try:
             result = f'Права юзера {md.hcode(user["id"])} - {user["name"]["first"]} {user["name"]["last"]} изменены!\n'
 
         except Exception:
-            result = f'Случилась ошибка при попытке выполнить /set_role {id}\n\n' \
+            result = f'Случилась ошибка при попытке выполнить /set_role {self.get_args()}\n\n' \
                      'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
         await self.reply(result)
@@ -106,7 +106,7 @@ class AdminLayer:
                      f'Почта: {md.hcode(user["user"][0] + "@traffbraza.com")}\nПароль: {md.hcode(user["user"][1])}'
 
         except Exception:
-            result = 'Случилась ошибка при попытке выполнить /add_user {Имя} {Фамилия}\n\n' \
+            result = f'Случилась ошибка при попытке выполнить /add_user {self.get_args()}\n\n' \
                      'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
         await self.reply(result)
@@ -127,7 +127,7 @@ class AdminLayer:
     async def del_user(self: types.Message):
 
         id = self.text.split(" ")[1]
-        user = yapi.get_user('int', id)
+        user = yapi.get_user(id)
 
         try:
             if user["isAdmin"] == True:
@@ -138,7 +138,7 @@ class AdminLayer:
                 result = f'Пользователь {md.hcode(id)} - успешно удалён'
 
         except Exception:
-            result = f'Случилась ошибка при попытке выполнить /del_user {id}\n\n' \
+            result = f'Случилась ошибка при попытке выполнить /del_user {self.get_args()}\n\n' \
                      'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
         await self.reply(result)
@@ -159,16 +159,15 @@ class UserLayer:
 
         if len(self.text.split(" ")) == 2:
             param1 = self.text.split(" ")[1]
-            if param1.isdigit():
-                datatype = 'int'
-            else:
-                datatype = 'str'
-            user = yapi.get_user(datatype, param1)
+            user = yapi.get_user(param1)
 
         elif len(self.text.split(" ")) == 3:
             param1 = self.text.split(" ")[1]
             param2 = self.text.split(" ")[2]
-            user = yapi.get_user('str', param1, param2)
+            user = yapi.get_user(param1, param2)
+
+        else:
+            pass
 
         try:
 
@@ -177,8 +176,8 @@ class UserLayer:
                      f'Почта: {md.hcode(user["email"])}\nАдминистратор: {user["isAdmin"]}'
 
         except Exception:
-            result = f'Случилась ошибка при попытке выполнить /get_user {id}\n\n' \
-                     'Удостовертесь что команда выполнена в виде  /get_user ID\n\nСправка: /help'
+            result = f'Случилась ошибка при попытке выполнить /get_user {self.get_args()}\n\n' \
+                     'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
         await self.reply(result)
 

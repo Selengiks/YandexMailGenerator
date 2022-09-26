@@ -37,32 +37,36 @@ def users():
     return user_list
 
 
-def get_user(datatype, *args):
-    param = ""
+def get_user(*args):
 
-    if datatype == 'int':
-        param = args[0]
+    params = io(args)
+
+    if type(params[0]) == int:
+        param = params[0]
 
     else:
-        if PATTERN.match(args[0]):
+        if PATTERN.match(params[0]):
             userId = 0
             data = users()
 
             for key, value in data.items():
-                if value['email'] == args[0]:
+                if value['email'] == params[0]:
                     userId = key
 
             param = userId
 
-        elif len(args) > 1:
+        elif len(params) == 2:
             userId = 0
             data = users()
 
             for key, value in data.items():
-                if value['name']['first'] == args[0] and value['name']['last'] == args[1]:
+                if value['name']['first'] == params[0] and value['name']['last'] == params[1]:
                     userId = key
 
             param = userId
+
+        else:
+            return "IOError"
 
     response = requests.get(
         f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{param}',
@@ -99,10 +103,10 @@ def add_user(first, last):
 
 
 def del_user(id):
-    data = get_user('int', id)
+    data = get_user(id)
 
     response = requests.delete(
-        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{data["id"]}',
+        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{data[0]}',
         headers=HEADERS,
         proxies=cfg.PROXIES,
         timeout=10
@@ -117,7 +121,7 @@ def edit_user(id, payload):
     params = payload
 
     response = requests.patch(
-        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{data["id"]}',
+        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{data[0]}',
         params=params,
         headers=HEADERS,
         proxies=cfg.PROXIES,
@@ -133,3 +137,17 @@ def create_random_password(length=12):
         random.choice(symbols)
         for _ in range(length)
     )
+
+
+def io(*args):
+
+    output = []
+
+    for p in args:
+        for i in p:
+            try:
+                output.append(int(i))
+            except ValueError:
+                output.append(i)
+
+    return output
