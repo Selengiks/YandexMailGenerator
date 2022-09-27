@@ -2,10 +2,44 @@ import bot.yandex_api as yapi
 import config as cfg
 from aiogram import md, types
 from loguru import logger
-from support.bots import dp
+from support.bots import dp, bot
 from transliterate import translit
+import bot.keyboard as kb
+from bot.help import help
 
 logger.debug("Bot commands module loaded")
+
+
+@dp.callback_query_handler(lambda c: c.data)
+async def process_callback_commands(callback_query: types.CallbackQuery):
+    code = callback_query.data
+    if code == 'users':
+        await bot.answer_callback_query(
+            callback_query.id, text='users')
+        await AdminLayer.users(callback_query.message)
+    elif code == 'get_user':
+        await bot.answer_callback_query(
+            callback_query.id, text='get_user')
+    elif code == 'add_user':
+        await bot.answer_callback_query(
+            callback_query.id, text='add_user')
+    elif code == 'edit_user':
+        await bot.answer_callback_query(
+            callback_query.id, text='edit_user')
+    elif code == 'del_user':
+        await bot.answer_callback_query(
+            callback_query.id, text='del_user', show_alert=True)
+    elif code == 'help':
+        await bot.answer_callback_query(
+            callback_query.id, text='help')
+        await help(callback_query.message)
+    elif code == 'support':
+        await bot.answer_callback_query(
+            callback_query.id, text='support')
+    else:
+        await bot.answer_callback_query(callback_query.id)
+    await bot.send_message(callback_query.from_user.id, f'Нажата инлайн кнопка! code= {code}')
+
 
 """====================    Admin layer     ===================="""
 
@@ -75,19 +109,25 @@ class AdminLayer:
     async def users(self: types.Message):
 
         users = yapi.users()
+        logger.debug(f'Всего сотрудников: {len(users)}')
         result = ""
-        c = 1
+        num = 1
 
         for key, value in users.items():
-            result += f'#: {c}\nID: {md.hcode(key)}\nИмя: {md.hcode(users[key]["name"]["first"])}\n' \
+            result += f'#: {num}\nID: {md.hcode(key)}\nИмя: {md.hcode(users[key]["name"]["first"])}\n' \
                       f'Фамилия: {md.hcode(users[key]["name"]["last"])}\n' \
-                      f'Почта: {md.hcode(users[key]["email"])}\nАдминистратор: {md.hcode(users[key]["isAdmin"])}\n\n'
-
-            c += 1
-
-            if c % 15 == 0:  # сколько юзеров выводить в одном сообщении. Больше 15 не рекомендую, может не всех вывести
+                      f'Почта: {md.hcode(users[key]["email"])}\nАдминистратор: {users[key]["isAdmin"]}\n\n'
+            num += 1
+            print(f'{len(result)}')
+            if len(result) > 3900:
                 await self.answer(result)
                 result = ""
+        await self.answer(result)
+
+
+
+
+
 
     @dp.message_handler(
         user_id=admin_id,
@@ -132,9 +172,8 @@ class AdminLayer:
 
         id = self.text.split(" ")[1]
         user = yapi.get_user(id)
-        print(user)
 
-        if user == False:
+        if not user:
             result = f'Пользователь с id {id} - не существует.\n' \
                      f'Попробуй команду {md.hcode(f"/get_user {id}")}, чтобы удостовериться.'
         else:
@@ -201,7 +240,8 @@ class UserLayer:
 )
 async def send_welcome(message: types.Message):
     botinfo = await dp.bot.me
-    await message.reply(f'На связи {botinfo.full_name}\n\nСправка по командам: /help')
+    await message.reply(f'{botinfo.full_name} [{md.hcode(f"@{botinfo.username}")}] на связи!\n\nГлавное меню:',
+                        reply_markup=kb.inline_menu)
 
 
 @dp.message_handler()
@@ -223,3 +263,12 @@ async def del_admin(id):
             if i != id:
                 f.write(i)
         f.truncate()
+
+
+@dp.message_handler(
+    chat_type=[types.ChatType.PRIVATE],
+    commands="sukablyatebuchayaklava"
+)
+async def del_keyb(message: types.Message):
+    delete = types.ReplyKeyboardRemove(True)
+    await message.answer(f'Done', reply_markup=delete)

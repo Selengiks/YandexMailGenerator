@@ -8,6 +8,7 @@ from support.bots import dp
     commands="help"
 )
 async def help(message: types.Message):
+    print(message)
     result = f"Справка по использованию бота\n\n" \
              f"{md.hbold('Посмотреть список всех сотрудников')} - /users\n" \
              f"Команда выводит всех сотрудников, их id, имя, фамилию, почту и статус (Администратор\Пользователь)\n\n" \
