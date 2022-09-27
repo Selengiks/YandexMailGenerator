@@ -132,8 +132,9 @@ class AdminLayer:
 
         id = self.text.split(" ")[1]
         user = yapi.get_user(id)
+        print(user)
 
-        if user['message'] == 'not_found' or user == False:
+        if user == False:
             result = f'Пользователь с id {id} - не существует.\n' \
                      f'Попробуй команду {md.hcode(f"/get_user {id}")}, чтобы удостовериться.'
         else:
@@ -168,12 +169,12 @@ class UserLayer:
 
         if len(self.text.split(" ")) == 2:
             param1 = self.text.split(" ")[1]
-            user = yapi.get_user(param1)
+            user = yapi.get_user(translit(param1, "ru", reversed=True))
 
         elif len(self.text.split(" ")) == 3:
             param1 = self.text.split(" ")[1]
             param2 = self.text.split(" ")[2]
-            user = yapi.get_user(param1, param2)
+            user = yapi.get_user(translit(param1, "ru", reversed=True), translit(param2, "ru", reversed=True))
 
         else:
             pass

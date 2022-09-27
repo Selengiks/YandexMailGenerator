@@ -66,7 +66,7 @@ def get_user(*args):
             param = userId
 
         else:
-            return "IOError"
+            return False
 
     response = requests.get(
         f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{param}',
@@ -109,11 +109,8 @@ def add_user(first, last):
 def del_user(id):
     data = get_user(id)
 
-    if id not in data:
-        return False
-
     response = requests.delete(
-        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{data[0]}',
+        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{data["id"]}',
         headers=HEADERS,
         proxies=cfg.PROXIES,
         timeout=10
