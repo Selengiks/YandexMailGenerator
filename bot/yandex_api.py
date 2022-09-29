@@ -1,3 +1,4 @@
+import json
 import random
 import string
 from collections import OrderedDict
@@ -9,9 +10,10 @@ import config as cfg
 HEADERS = {
     'Authorization': 'OAuth ' + cfg.API_TOKEN,
     'User-Agent': 'TBMailBot Agent',
+    'Content-Type': 'application/json'
 }
 
-PATTERN = re.compile('[A-Za-z0-9._%+-]+@traffbraza\.com')
+PATTERN = re.compile(f'[A-Za-z0-9._%+-]+@traffbraza\.com')
 
 user_list = OrderedDict()
 
@@ -30,15 +32,13 @@ def users():
     ).json()
 
     for x in response['users']:
-        user_list[x['id']] = {'nickname': x['nickname'], 'email': x['email'], 'password': None,
-                              'name': {'first': x['name']['first'], 'last': x['name']['last']},
-                              'isAdmin': x['isAdmin'], 'createdAt': x['createdAt'], 'updatedAt': x['updatedAt']}
-
+        user_list[x['user_id']] = {'nickname': x['nickname'], 'email': x['email'], 'password': None,
+                                   'name': {'first': x['name']['first'], 'last': x['name']['last']},
+                                   'isAdmin': x['isAdmin'], 'createdAt': x['createdAt'], 'updatedAt': x['updatedAt']}
     return user_list
 
 
 def get_user(*args):
-
     params = io(args)
 
     if type(params[0]) == int:
@@ -80,9 +80,11 @@ def get_user(*args):
 
 def add_user(first, last):
     data = users()
+
     for key, value in data.items():
         if first == value['name']['first'] and last == value['name']['last']:
             return False
+
     nickname = f'{first.lower()}.{last.lower()}'
     password = create_random_password()
 
@@ -110,7 +112,7 @@ def del_user(id):
     data = get_user(id)
 
     response = requests.delete(
-        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{data["id"]}',
+        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{data["user_id"]}',
         headers=HEADERS,
         proxies=cfg.PROXIES,
         timeout=10
@@ -120,19 +122,17 @@ def del_user(id):
 
 
 def edit_user(id, payload):
-    data = get_user('int', id)
-
-    params = payload
+    user_id = get_user(id)
 
     response = requests.patch(
-        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{data[0]}',
-        params=params,
+        f'https://api.directory.yandex.net/v6/users/{user_id["user_id"]}',
+        json=payload,
         headers=HEADERS,
         proxies=cfg.PROXIES,
         timeout=10
-    ).json()
-
-    return response
+    )
+    print(response.text)
+    return response.json()
 
 
 def create_random_password(length=12):
@@ -144,7 +144,6 @@ def create_random_password(length=12):
 
 
 def io(*args):
-
     output = []
 
     for p in args:
