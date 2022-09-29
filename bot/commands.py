@@ -98,7 +98,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):  # allow us
     if current_state is None:
         return
 
-    logger.debug(f'Cancelling state: {current_state}')
+    logger.debug(f'Cancell current state and set {current_state}')
     await FSM.primary.set()
     await message.reply('Cancelled.', reply_markup=types.ReplyKeyboardRemove())
 
@@ -364,6 +364,7 @@ class UserLayer:
 
 @dp.message_handler(
     chat_type=[types.ChatType.PRIVATE],
+    state="*",
     commands="start"
 )
 async def main_menu(message: types.Message):  # bot main menu, and start method

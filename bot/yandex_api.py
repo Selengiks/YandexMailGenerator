@@ -32,7 +32,7 @@ def users():
     ).json()
 
     for x in response['users']:
-        user_list[x['user_id']] = {'nickname': x['nickname'], 'email': x['email'], 'password': None,
+        user_list[x['id']] = {'nickname': x['nickname'], 'email': x['email'], 'password': None,
                                    'name': {'first': x['name']['first'], 'last': x['name']['last']},
                                    'isAdmin': x['isAdmin'], 'createdAt': x['createdAt'], 'updatedAt': x['updatedAt']}
     return user_list
