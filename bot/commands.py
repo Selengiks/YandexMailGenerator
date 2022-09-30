@@ -70,16 +70,16 @@ async def process_callback_commands(callback_query: types.CallbackQuery):  # mai
     commands="set_admin"
 )
 async def set_admin(message: types.Message):  # set access to bot commands for telegram users
-    id = message.text.split(" ")[1]
+    user_id = message.text.split(" ")[1]
     setAdmin = message.text.split(" ")[2]
 
     try:
         if setAdmin == "True":
-            await add_admin(id)
+            await add_admin(user_id)
         else:
-            await del_admin(id)
+            await del_admin(user_id)
 
-        result = f'Права юзера {md.hcode(id)} в боте изменены.\n'
+        result = f'Права юзера {md.hcode(user_id)} в боте изменены.\n'
 
     except (Exception,):
         result = f'Случилась ошибка при попытке выполнить {message.get_command()} {message.get_args()}\n\n' \
@@ -116,23 +116,26 @@ class AdminLayer:
     )
     async def set_role(self: types.Message):  # change users rights on yandex
 
-        id = self.text.split(" ")[1]
+        user_id = self.text.split(" ")[1]
         setAdmin = self.text.split(" ")[2]
 
         payload = {
             'isAdmin': setAdmin
         }
 
-        user = yapi.get_user(id)
-        yapi.edit_user(id, payload)
+        user = yapi.get_user(user_id)
+        yapi.edit_user(user_id, payload)
 
         try:
-            result = f'Права юзера {md.hcode(user["user_id"])} - {user["name"]["first"]} {user["name"]["last"]} изменены!\n'
+            result = f'Права юзера {md.hcode(user["json"]["id"])} - ' \
+                     f'{user["json"]["name"]["first"]} {user["json"]["name"]["last"]} изменены!\n'
 
         except (Exception,):
+            logger.debug(f'Code: {user["response"].status_code}. Content: {user["response"].content}')
             result = f'Случилась ошибка при попытке выполнить {self.get_command()} {self.get_args()}\n\n' \
                      'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
+        logger.debug(f'Code: {user["response"].status_code}. Content: {user["response"].content}')
         await self.reply(result)
 
     @dp.message_handler(
@@ -193,17 +196,17 @@ class AdminLayer:
     )
     async def edit_user(self: types.Message, state: FSMContext):  # edit selected users info
 
-        id = self.text.split(" ")[1]
-        user = yapi.get_user(id)
+        user_id = self.text.split(" ")[1]
+        user = yapi.get_user(user_id)
 
         if not user:  # check if user exsist
-            result = f'Пользователь с user_id {id} - не существует.\n' \
-                     f'Попробуй команду {md.hcode(f"/get_user {id}")}, чтобы удостовериться.'
+            result = f'Пользователь с user_id {user_id} - не существует.\n' \
+                     f'Попробуй команду {md.hcode(f"/get_user {user_id}")}, чтобы удостовериться.'
             await self.reply(result)
 
         else:
             async with state.proxy() as data:
-                data['user_id'] = id
+                data['user_id'] = user_id
             await FSM.edit_user_main.set()
             await self.reply(f'Введи, что ты хочешь изменить:\nfull_name - изменить имя и фамилию\n'
                              f'password - сгенерировать новый пароль\nИли введи /cancel чтобы отменить операцию.')
@@ -252,7 +255,7 @@ class AdminLayer:
             yapi.edit_user(data['user_id'], payload)
 
             result = f'Информация пользователя {md.hcode(data["user_id"])} - была обновлена.\n' \
-                     f'Проверь командой /get user {data["user_id"]}'
+                     f'Проверь командой /get_user {data["user_id"]}'
 
             await FSM.primary.set()
 
@@ -275,17 +278,19 @@ class AdminLayer:
         else:
 
             try:
-                if user["isAdmin"]:
+                if user["json"]["isAdmin"]:
                     result = f'Пользователь {md.hcode(user_id)} имеет права администратора, и не может быть удалён'
 
                 else:
                     yapi.del_user(user_id)
-                    result = f'Пользователь {md.hcode(user_id)} - успешно удалён'
+                    result = f'Пользователь {md.hcode(user_id)} - успешно удалён.\n Проверь командой get_user {user_id}'
 
             except (Exception,):
+                logger.debug(f'Code: {user["response"].status_code}. Content: {user["response"].content}')
                 result = f'Случилась ошибка при попытке выполнить {self.get_command()} {self.get_args()}\n\n' \
                          'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
+        logger.debug(f'Code: {user["response"].status_code}. Content: {user["response"].content}')
         await self.reply(result)
 
     @dp.message_handler(
@@ -332,11 +337,9 @@ class UserLayer:
     )
     async def get_user(self: types.Message):  # return info about user
 
-        user = None
-
         if len(self.text.split(" ")) == 2:
             param1 = self.text.split(" ")[1]
-            user = yapi.get_user(translit(param1, "ru", reversed=True))
+            user = yapi.get_user(param1)
 
         elif len(self.text.split(" ")) == 3:
             param1 = self.text.split(" ")[1]
@@ -344,18 +347,19 @@ class UserLayer:
             user = yapi.get_user(translit(param1, "ru", reversed=True), translit(param2, "ru", reversed=True))
 
         else:
-            pass
+            raise Exception
 
         try:
-
-            result = f'Пользователь {md.hcode(user["user_id"])}\n' \
-                     f'Имя: {user["name"]["first"]}\nФамилия: {user["name"]["last"]}\n' \
-                     f'Почта: {md.hcode(user["email"])}\nАдминистратор: {user["isAdmin"]}'
+            result = f'Пользователь {md.hcode(user["json"]["id"])}\n' \
+                     f'Имя: {user["json"]["name"]["first"]}\nФамилия: {user["json"]["name"]["last"]}\n' \
+                     f'Почта: {md.hcode(user["json"]["email"])}\nАдминистратор: {user["json"]["isAdmin"]}'
 
         except (Exception,):
+            logger.debug(f'Code: {user["response"].status_code}. Content: {user["response"].content}')
             result = f'Случилась ошибка при попытке выполнить {self.get_command()} {self.get_args()},' \
                      f' или юзера не существует.\n\nУдостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
+        logger.debug(f'Code: {user["response"].status_code}. Content: {user["response"].content}')
         await self.reply(result)
 
 

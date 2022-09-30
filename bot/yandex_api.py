@@ -30,7 +30,6 @@ def users():
         proxies=cfg.PROXIES,
         timeout=10,
     ).json()
-
     for x in response['users']:
         user_list[x['id']] = {'nickname': x['nickname'], 'email': x['email'], 'password': None,
                                    'name': {'first': x['name']['first'], 'last': x['name']['last']},
@@ -73,9 +72,10 @@ def get_user(*args):
         headers=HEADERS,
         proxies=cfg.PROXIES,
         timeout=10
-    ).json()
+    )
 
-    return response
+    out = {'response': response, 'json': response.json()}
+    return out
 
 
 def add_user(first, last):
@@ -110,9 +110,8 @@ def add_user(first, last):
 
 def del_user(id):
     data = get_user(id)
-
     response = requests.delete(
-        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{data["user_id"]}',
+        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{data["json"]["id"]}',
         headers=HEADERS,
         proxies=cfg.PROXIES,
         timeout=10
@@ -122,10 +121,10 @@ def del_user(id):
 
 
 def edit_user(id, payload):
-    user_id = get_user(id)
+    data = get_user(id)
 
     response = requests.patch(
-        f'https://api.directory.yandex.net/v6/users/{user_id["user_id"]}',
+        f'https://api.directory.yandex.net/v6/users/{data["json"]["id"]}',
         json=payload,
         headers=HEADERS,
         proxies=cfg.PROXIES,
