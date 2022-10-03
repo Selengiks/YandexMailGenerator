@@ -27,7 +27,11 @@ class FSM(StatesGroup):  # FSM for edit user info
 """====================    Commands via inline buttons     ===================="""
 
 
-@dp.callback_query_handler(lambda c: c.data, state=FSM.primary)
+@dp.callback_query_handler(
+    lambda c: c.data,
+    state=FSM.primary,
+    user_id=admin_id
+)
 async def process_callback_commands(callback_query: types.CallbackQuery):  # main method for processing callbacks
     code = callback_query.data
 
@@ -90,7 +94,8 @@ async def set_admin(message: types.Message):  # set access to bot commands for t
 
 @dp.message_handler(
     state='*',
-    commands='cancel'
+    commands='cancel',
+    user_id=admin_id
 )
 async def cancel_handler(message: types.Message, state: FSMContext):  # allow user to cancel any action
 
@@ -212,7 +217,8 @@ class AdminLayer:
                              f'password - сгенерировать новый пароль\nИли введи /cancel чтобы отменить операцию.')
 
     @dp.message_handler(
-        state=FSM.edit_user_main
+        state=FSM.edit_user_main,
+        user_id=admin_id
     )
     async def process_mode(self: types.Message, state: FSMContext):  # process mode for edit_user
 
@@ -241,7 +247,8 @@ class AdminLayer:
             await self.reply(result)
 
     @dp.message_handler(
-        state=FSM.edit_user_full_name
+        state=FSM.edit_user_full_name,
+        user_id=admin_id
     )
     async def process_full_name(self: types.Message, state: FSMContext):  # process user first and last name
 
@@ -333,7 +340,7 @@ class UserLayer:
 
     @dp.message_handler(
         chat_type=[types.ChatType.PRIVATE],
-        state=FSM.primary,
+        state="*",
         commands="get_user"
     )
     async def get_user(self: types.Message):  # return info about user
@@ -370,7 +377,8 @@ class UserLayer:
 @dp.message_handler(
     chat_type=[types.ChatType.PRIVATE],
     state="*",
-    commands="start"
+    commands="start",
+    user_id=admin_id
 )
 async def main_menu(message: types.Message):  # bot main menu, and start method
     await FSM.primary.set()
