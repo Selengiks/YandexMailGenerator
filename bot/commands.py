@@ -230,6 +230,7 @@ class AdminLayer:
                 }
                 yapi.edit_user(data['user_id'], payload)
                 result = f'Пароль пользователя {md.hcode(data["user_id"])} - изменён. Пароль - {md.hcode(password)}'
+                await FSM.primary.set()
                 await self.answer(result)
             else:
                 raise Exception
