@@ -397,7 +397,7 @@ async def echo(message: types.Message):  # for unrecognized commands or user ran
 
 async def add_admin(user_id):  # add telegram user to bot admins
     with open(cfg.filename, "a+") as f:
-        f.writelines(user_id)
+        f.write(f'{user_id}\n')
 
 
 async def del_admin(user_id):  # delete telegram user from bot admins
@@ -405,7 +405,7 @@ async def del_admin(user_id):  # delete telegram user from bot admins
         d = f.readlines()
         f.seek(0)
         for i in d:
-            if i != user_id:
+            if i != f'{user_id}\n':
                 f.write(i)
         f.truncate()
 
