@@ -103,7 +103,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):  # allow us
     if current_state is None:
         return
 
-    logger.debug(f'Cancell current state and set {current_state}')
+    logger.debug(f'Return to primary state')
     await FSM.primary.set()
     await message.reply('Cancelled.', reply_markup=types.ReplyKeyboardRemove())
 
@@ -201,20 +201,26 @@ class AdminLayer:
     )
     async def edit_user(self: types.Message, state: FSMContext):  # edit selected users info
 
-        user_id = self.text.split(" ")[1]
-        user = yapi.get_user(user_id)
+        try:
+            user_id = self.text.split(" ")[1]
+            user = yapi.get_user(user_id)
 
-        if not user:  # check if user exsist
-            result = f'Пользователь с user_id {user_id} - не существует.\n' \
-                     f'Попробуй команду {md.hcode(f"/get_user {user_id}")}, чтобы удостовериться.'
-            await self.reply(result)
+            if not user:  # check if user exsist
+                result = f'Пользователь с user_id {user_id} - не существует.\n' \
+                         f'Попробуй команду {md.hcode(f"/get_user {user_id}")}, чтобы удостовериться.'
 
-        else:
-            async with state.proxy() as data:
-                data['user_id'] = user_id
-            await FSM.edit_user_main.set()
-            await self.reply(f'Введи, что ты хочешь изменить:\nfull_name - изменить имя и фамилию\n'
-                             f'password - сгенерировать новый пароль\nИли введи /cancel чтобы отменить операцию.')
+            else:
+                async with state.proxy() as data:
+                    data['user_id'] = user_id
+                await FSM.edit_user_main.set()
+                result = (f'Введи, что ты хочешь изменить:\nfull_name - изменить имя и фамилию\n'
+                          f'password - сгенерировать новый пароль\nИли введи /cancel чтобы отменить операцию.')
+
+        except (Exception,):
+            result = f'Случилась ошибка при попытке выполнить {self.get_command()} {self.get_args()}\n\n' \
+                     'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
+
+        await self.reply(result)
 
     @dp.message_handler(
         state=FSM.edit_user_main,
@@ -234,8 +240,9 @@ class AdminLayer:
                 payload = {
                     'password': password
                 }
-                yapi.edit_user(data['user_id'], payload)
+                res = yapi.edit_user(data['user_id'], payload)
                 result = f'Пароль пользователя {md.hcode(data["user_id"])} - изменён. Пароль - {md.hcode(password)}'
+                logger.debug(f'Code: {res["response"].status_code}. Content: {res["response"].content}')
                 await FSM.primary.set()
                 await self.answer(result)
             else:
@@ -260,11 +267,11 @@ class AdminLayer:
         }
 
         async with state.proxy() as data:
-            yapi.edit_user(data['user_id'], payload)
+            res = yapi.edit_user(data['user_id'], payload)
 
             result = f'Информация пользователя {md.hcode(data["user_id"])} - была обновлена.\n' \
                      f'Проверь командой /get_user {data["user_id"]}'
-
+            logger.debug(f'Code: {res["response"].status_code}. Content: {res["response"].content}')
             await FSM.primary.set()
 
         await self.answer(result)
@@ -277,28 +284,27 @@ class AdminLayer:
     )
     async def del_user(self: types.Message):  # delete user from yandex
 
-        user_id = self.text.split(" ")[1]
-        user = yapi.get_user(user_id)
+        try:
+            user_id = self.text.split(" ")[1]
+            user = yapi.get_user(user_id)
 
-        if not user:
-            result = f'Пользователь с user_id {user_id} - не существует.\n' \
-                     f'Попробуй команду {md.hcode(f"/get_user {user_id}")}, чтобы удостовериться.'
-        else:
+            if not user:
+                result = f'Пользователь с user_id {user_id} - не существует.\n' \
+                         f'Попробуй команду {md.hcode(f"/get_user {user_id}")}, чтобы удостовериться.'
+            else:
 
-            try:
                 if user["json"]["isAdmin"]:
                     result = f'Пользователь {md.hcode(user_id)} имеет права администратора, и не может быть удалён'
 
                 else:
-                    yapi.del_user(user_id)
+                    res = yapi.del_user(user_id)
+                    logger.debug(f'Code: {res["response"].status_code}. Content: {res["response"].content}')
                     result = f'Пользователь {md.hcode(user_id)} - успешно удалён.\n Проверь командой get_user {user_id}'
 
-            except (Exception,):
-                logger.debug(f'Code: {user["response"].status_code}. Content: {user["response"].content}')
-                result = f'Случилась ошибка при попытке выполнить {self.get_command()} {self.get_args()}\n\n' \
-                         'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
+        except (Exception,):
+            result = f'Случилась ошибка при попытке выполнить {self.get_command()} {self.get_args()}\n\n' \
+                     'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
-        logger.debug(f'Code: {user["response"].status_code}. Content: {user["response"].content}')
         await self.reply(result)
 
     @dp.message_handler(
@@ -308,17 +314,18 @@ class AdminLayer:
         commands="help"
     )
     async def help(self: types.Message):
-        result = f"Справка по использованию бота (Для режима ввода командами)\n\n" \
+        result = f"Справка по использованию бота\n\n" \
                  f"{md.hbold('Посмотреть список всех сотрудников')} - /users\n" \
                  f"Команда выводит сотрудников, их id, имя, фамилию, почту и статус (Администратор/Пользователь)\n\n" \
                  f"{md.hbold('Посмотреть конкретного пользователя')} - /get_user [params]\n" \
                  f"[params] - варианты, как можно отобразить сотрудника:\n" \
                  f"ID - Идентификатор можно узнать, посмотрев список всех сотрудников (/users), пункт ID\n" \
-                 f"MAIL - почта сотрудника\n" \
-                 f"NAME SURNAME - поиск по имени и фамилии. Порядок имени и фамилии обязателен!\n\n" \
+                 f"MAIL - почта сотрудника, если известно\n" \
+                 f"NAME SURNAME - поиск по имени и фамилии. Порядок имени и фамилии обязателен, возможен поиск " \
+                 f"транслитом, вот примеры ввода:\n/get_user Пупа Лупович, /get_user Pupa Lupovich\n\n" \
                  f"{md.hbold('Добавить пользователя')} - /add_user ИМЯ ФАМИЛИЯ\n" \
                  f"Создаёт почту на заданное имя и фамилию человека. " \
-                 f"Внимание, имя фамилия автоматичеки транслитерируются, а также, порядок имени и фамилии важен!\n\n" \
+                 f"Внимание, имя фамилия автоматичеки транслитерируются, порядок ввода имени и фамилии важен!\n\n" \
                  f"{md.hbold('Удалить пользователя')} - /del_user ID\n" \
                  f"Удаляет пользователя по ID (во избежания случайнойстей)\n\n" \
                  f"{md.hbold('Изменить данные пользователя')} - /edit_user ID\n" \
@@ -383,7 +390,9 @@ class UserLayer:
 async def main_menu(message: types.Message):  # bot main menu, and start method
     await FSM.primary.set()
     botinfo = await dp.bot.me
-    await message.reply(f'{botinfo.full_name} [{md.hcode(f"@{botinfo.username}")}] на связи!\n\nГлавное меню (WIP):',
+    await message.reply(f'{botinfo.full_name} [{md.hcode(f"@{botinfo.username}")}] на связи!\n\n'
+                        f'{md.hbold("Менеджмент происходит через команды во избежание ошибок! Смотрите справку")}\n\n'
+                        f'Главное меню (WIP):',
                         reply_markup=kb.inline_menu)
 
 

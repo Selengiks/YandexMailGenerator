@@ -1,4 +1,3 @@
-import json
 import random
 import string
 from collections import OrderedDict
@@ -115,9 +114,11 @@ def del_user(id):
         headers=HEADERS,
         proxies=cfg.PROXIES,
         timeout=10
-    ).json()
+    )
 
-    return response
+    out = {'response': response, 'json': response.json()}
+
+    return out
 
 
 def edit_user(id, payload):
@@ -130,8 +131,10 @@ def edit_user(id, payload):
         proxies=cfg.PROXIES,
         timeout=10
     )
-    print(response.text)
-    return response.json()
+
+    out = {'response': response, 'json': response.json()}
+
+    return out
 
 
 def create_random_password(length=12):
