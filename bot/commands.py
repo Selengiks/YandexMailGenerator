@@ -74,8 +74,8 @@ async def process_callback_commands(callback_query: types.CallbackQuery):  # mai
     commands="set_admin"
 )
 async def set_admin(message: types.Message):  # set access to bot commands for telegram users
-    user_id = message.text.split(" ")[1]
-    setAdmin = message.text.split(" ")[2]
+    user_id = message.text.split()[1]
+    setAdmin = message.text.split()[2]
 
     try:
         if setAdmin == "True":
@@ -121,8 +121,8 @@ class AdminLayer:
     )
     async def set_role(self: types.Message):  # change users rights on yandex
 
-        user_id = self.text.split(" ")[1]
-        setAdmin = self.text.split(" ")[2]
+        user_id = self.text.split()[1]
+        setAdmin = self.text.split()[2]
 
         payload = {
             'isAdmin': setAdmin
@@ -175,8 +175,8 @@ class AdminLayer:
     async def add_user(self: types.Message):  # add new user on yandex
 
         try:
-            first = translit(str(self.text.split(" ")[1]), "ru", reversed=True)
-            last = translit(str(self.text.split(" ")[2]), "ru", reversed=True)
+            first = translit(str(self.text.split()[1]), "ru", reversed=True)
+            last = translit(str(self.text.split()[2]), "ru", reversed=True)
             user = yapi.add_user(first, last)
 
             if not user:
@@ -202,7 +202,7 @@ class AdminLayer:
     async def edit_user(self: types.Message, state: FSMContext):  # edit selected users info
 
         try:
-            user_id = self.text.split(" ")[1]
+            user_id = self.text.split()[1]
             user = yapi.get_user(user_id)
 
             if not user:  # check if user exsist
@@ -261,8 +261,8 @@ class AdminLayer:
 
         payload = {
             "name": {
-                "first": self.text.split(" ")[0],
-                "last": self.text.split(" ")[1]
+                "first": self.text.split()[0],
+                "last": self.text.split()[1]
             }
         }
 
@@ -285,7 +285,7 @@ class AdminLayer:
     async def del_user(self: types.Message):  # delete user from yandex
 
         try:
-            user_id = self.text.split(" ")[1]
+            user_id = self.text.split()[1]
             user = yapi.get_user(user_id)
 
             if not user:
@@ -352,13 +352,13 @@ class UserLayer:
     )
     async def get_user(self: types.Message):  # return info about user
 
-        if len(self.text.split(" ")) == 2:
-            param1 = self.text.split(" ")[1]
+        if len(self.text.split()) == 2:
+            param1 = self.text.split()[1]
             user = yapi.get_user(param1)
 
-        elif len(self.text.split(" ")) == 3:
-            param1 = self.text.split(" ")[1]
-            param2 = self.text.split(" ")[2]
+        elif len(self.text.split()) == 3:
+            param1 = self.text.split()[1]
+            param2 = self.text.split()[2]
             user = yapi.get_user(translit(param1, "ru", reversed=True), translit(param2, "ru", reversed=True))
 
         else:
