@@ -89,6 +89,7 @@ async def set_admin(message: types.Message):  # set access to bot commands for t
         result = f'Случилась ошибка при попытке выполнить {message.get_command()} {message.get_args()}\n\n' \
                  'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
+    logger.debug(result)
     await message.reply(result)
 
 
@@ -103,7 +104,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):  # allow us
     if current_state is None:
         return
 
-    logger.debug(f'Return to primary state')
+    logger.debug(f'/cancel triggered. Return to primary state')
     await FSM.primary.set()
     await message.reply('Cancelled.', reply_markup=types.ReplyKeyboardRemove())
 
@@ -141,6 +142,7 @@ class AdminLayer:
                      'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
         logger.debug(f'Code: {user["response"].status_code}. Content: {user["response"].content}')
+        logger.debug(result)
         await self.reply(result)
 
     @dp.message_handler(
@@ -164,6 +166,8 @@ class AdminLayer:
             if len(result) > 3900:
                 await self.answer(result)
                 result = ""
+
+        logger.debug(result)
         await self.answer(result)
 
     @dp.message_handler(
@@ -191,6 +195,7 @@ class AdminLayer:
             result = f'Случилась ошибка при попытке выполнить {self.get_command()} {self.get_args()}\n\n' \
                      'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
+        logger.debug(result)
         await self.reply(result)
 
     @dp.message_handler(
@@ -220,6 +225,7 @@ class AdminLayer:
             result = f'Случилась ошибка при попытке выполнить {self.get_command()} {self.get_args()}\n\n' \
                      'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
+        logger.debug(result)
         await self.reply(result)
 
     @dp.message_handler(
@@ -244,6 +250,7 @@ class AdminLayer:
                 result = f'Пароль пользователя {md.hcode(data["user_id"])} - изменён. Пароль - {md.hcode(password)}'
                 logger.debug(f'Code: {res["response"].status_code}. Content: {res["response"].content}')
                 await FSM.primary.set()
+                logger.debug(result)
                 await self.answer(result)
             else:
                 raise Exception
@@ -251,6 +258,7 @@ class AdminLayer:
         except (Exception,):
             result = f'Случилась ошибка при попытке выполнить {self.get_command()} {self.get_args()}\n\n' \
                      'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
+            logger.debug(result)
             await self.reply(result)
 
     @dp.message_handler(
@@ -274,6 +282,7 @@ class AdminLayer:
             logger.debug(f'Code: {res["response"].status_code}. Content: {res["response"].content}')
             await FSM.primary.set()
 
+        logger.debug(result)
         await self.answer(result)
 
     @dp.message_handler(
@@ -305,6 +314,7 @@ class AdminLayer:
             result = f'Случилась ошибка при попытке выполнить {self.get_command()} {self.get_args()}\n\n' \
                      'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
+        logger.debug(result)
         await self.reply(result)
 
     @dp.message_handler(
@@ -337,6 +347,7 @@ class AdminLayer:
                  f"False - снимает права администратора\n" \
                  f"Пример: /set_role 0000000000 True - назначает пользователя 0000000000 администратором\n"
 
+        logger.debug(result)
         await self.answer(result)
 
 
@@ -375,6 +386,7 @@ class UserLayer:
                      f' или юзера не существует.\n\nУдостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
         logger.debug(f'Code: {user["response"].status_code}. Content: {user["response"].content}')
+        logger.debug(result)
         await self.reply(result)
 
 
@@ -390,10 +402,11 @@ class UserLayer:
 async def main_menu(message: types.Message):  # bot main menu, and start method
     await FSM.primary.set()
     botinfo = await dp.bot.me
-    await message.reply(f'{botinfo.full_name} [{md.hcode(f"@{botinfo.username}")}] на связи!\n\n'
-                        f'{md.hbold("Менеджмент происходит через команды во избежание ошибок! Смотрите справку")}\n\n'
-                        f'Главное меню (WIP):',
-                        reply_markup=kb.inline_menu)
+    result = f'{botinfo.full_name} [{md.hcode(f"@{botinfo.username}")}] на связи!\n\n' \
+             f'{md.hbold("Менеджмент происходит через команды во избежание ошибок! Смотрите справку")}\n\n' \
+             f'Главное меню (WIP):'
+    logger.debug(result)
+    await message.reply(result, reply_markup=kb.inline_menu)
 
 
 @dp.message_handler(
@@ -401,6 +414,7 @@ async def main_menu(message: types.Message):  # bot main menu, and start method
 )
 async def echo(message: types.Message):  # for unrecognized commands or user random input
     result = f'Неопознанная команда\n\n{message.text}'
+    logger.debug(result)
     await message.answer(result)
 
 

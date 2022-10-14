@@ -1,14 +1,10 @@
 import os
 
 from loguru import logger
-from sys import stdout
+from support import loggeru
 import config_data_priv
 
-logger.remove()
-logger.add("log.txt", mode="w")
-logger.add(stdout, colorize=True, format="<green>{time:DD.MM.YY H:mm:ss}</green> "
-                                         "| <yellow><b>{level}</b></yellow> | <magenta>{file}</magenta> | <cyan>{"
-                                         "message}</cyan>")
+loggeru.start()
 
 logger.debug("Bot connection establish")
 
