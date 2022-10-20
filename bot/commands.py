@@ -176,8 +176,9 @@ class AdminLayer:
         state=FSM.primary,
         commands="add_user"
     )
-    async def add_user(self: types.Message):  # add new user on yandex
-
+    async def add_user(self: types.Message, state: FSMContext):  # add new user on yandex
+        current_state = await state.get_state()
+        logger.info(f'Current state for /add_user: {current_state}')
         try:
             first = translit(str(self.text.split()[1]), "ru", reversed=True)
             last = translit(str(self.text.split()[2]), "ru", reversed=True)
