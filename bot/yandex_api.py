@@ -2,7 +2,6 @@ import random
 import string
 from collections import OrderedDict
 import re
-
 import requests
 import config as cfg
 
@@ -26,13 +25,13 @@ def users():
         f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/',
         params=params,
         headers=HEADERS,
-        proxies=cfg.PROXIES,
+        # proxies=cfg.PROXIES
         timeout=10,
     ).json()
     for x in response['users']:
         user_list[x['id']] = {'nickname': x['nickname'], 'email': x['email'], 'password': None,
-                                   'name': {'first': x['name']['first'], 'last': x['name']['last']},
-                                   'isAdmin': x['isAdmin'], 'createdAt': x['createdAt'], 'updatedAt': x['updatedAt']}
+                              'name': {'first': x['name']['first'], 'last': x['name']['last']},
+                              'isAdmin': x['isAdmin'], 'createdAt': x['createdAt'], 'updatedAt': x['updatedAt']}
     return user_list
 
 
@@ -69,7 +68,7 @@ def get_user(*args):
     response = requests.get(
         f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{param}',
         headers=HEADERS,
-        proxies=cfg.PROXIES,
+        # proxies=cfg.PROXIES
         timeout=10
     )
 
@@ -98,7 +97,7 @@ def add_user(first, last):
         'https://api.directory.yandex.net/v6/users/',
         json=payload,
         headers=HEADERS,
-        proxies=cfg.PROXIES,
+        # proxies=cfg.PROXIES
         timeout=10,
     ).json()
 
@@ -112,7 +111,6 @@ def del_user(id):
     response = requests.delete(
         f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/{data["json"]["id"]}',
         headers=HEADERS,
-        proxies=cfg.PROXIES,
         timeout=10
     )
 
@@ -128,7 +126,7 @@ def edit_user(id, payload):
         f'https://api.directory.yandex.net/v6/users/{data["json"]["id"]}',
         json=payload,
         headers=HEADERS,
-        proxies=cfg.PROXIES,
+        # proxies=cfg.PROXIES
         timeout=10
     )
 
