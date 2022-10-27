@@ -190,7 +190,7 @@ class AdminLayer:
             else:
                 result = f'Пользователь {self.text.split(" ")[1]} {self.text.split(" ")[2]} успешно добавлен\n\n' \
                          f'Данные:\nИмя: {first}\nФамилия: {last}\n' \
-                         f'Почта: {md.hcode(user["user"][0] + "@traffbraza.com")}\nПароль: {md.hcode(user["user"][1])}'
+                         f'Почта: {md.hcode(user["user"][0] + "@traffbraza.com")}\nПароль: {md.hcode(user["user"][1])}\n'
 
         except (Exception,):
             result = f'Случилась ошибка при попытке выполнить {self.get_command()} {self.get_args()}\n\n' \

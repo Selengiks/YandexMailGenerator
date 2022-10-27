@@ -12,7 +12,7 @@ HEADERS = {
     'Content-Type': 'application/json'
 }
 
-PATTERN = re.compile(f'[A-Za-z0-9._%+-]+@traffbraza\.com')
+PATTERN = re.compile(f"[A-Za-z0-9.'_%+-]+@traffbraza\.com")
 
 user_list = OrderedDict()
 
