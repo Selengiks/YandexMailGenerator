@@ -180,8 +180,8 @@ class AdminLayer:
         current_state = await state.get_state()
         logger.info(f'Current state for /add_user: {current_state}')
         try:
-            first = translit(str(self.text.split()[1]), "ru", reversed=True)
-            last = translit(str(self.text.split()[2]), "ru", reversed=True)
+            first = translit(str(self.text.split()[1]), "ru", reversed=True).replace("'", "i")
+            last = translit(str(self.text.split()[2]), "ru", reversed=True).replace("'", "i")
             user = yapi.add_user(first, last)
 
             if not user:
