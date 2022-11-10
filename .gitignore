@@ -8,3 +8,5 @@ admins.txt
 log*
 __pycache__
 nohup.out
+nohups/
+*.bash
