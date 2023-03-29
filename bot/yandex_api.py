@@ -21,17 +21,22 @@ def users():
         'per_page': 1000,
     }
 
-    response = requests.get(
-        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/',
-        params=params,
-        headers=HEADERS,
-        # proxies=cfg.PROXIES
-        timeout=10,
-    ).json()
-    for x in response['users']:
-        user_list[x['id']] = {'nickname': x['nickname'], 'email': x['email'], 'password': None,
-                              'name': {'first': x['name']['first'], 'last': x['name']['last']},
-                              'isAdmin': x['isAdmin'], 'createdAt': x['createdAt'], 'updatedAt': x['updatedAt']}
+    try:
+        response = requests.get(
+            f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/',
+            params=params,
+            headers=HEADERS,
+            # proxies=cfg.PROXIES,
+            timeout=10,
+        ).json()
+
+        for x in response['users']:
+            user_list[x['id']] = {'nickname': x['nickname'], 'email': x['email'], 'password': None,
+                                  'name': {'first': x['name']['first'], 'last': x['name']['last']},
+                                  'isAdmin': x['isAdmin'], 'createdAt': x['createdAt'], 'updatedAt': x['updatedAt']}
+    except Exception as e:
+        print(e)
+
     return user_list
 
 
@@ -94,7 +99,7 @@ def add_user(first, last):
     }
 
     response = requests.post(
-        'https://api.directory.yandex.net/v6/users/',
+        f'https://api360.yandex.net/directory/v1/org/{cfg.ORG_ID}/users/',
         json=payload,
         headers=HEADERS,
         # proxies=cfg.PROXIES

@@ -192,7 +192,8 @@ class AdminLayer:
                          f'Данные:\nИмя: {first}\nФамилия: {last}\n' \
                          f'Почта: {md.hcode(user["user"][0] + "@traffbraza.com")}\nПароль: {md.hcode(user["user"][1])}\n'
 
-        except (Exception,):
+        except Exception as e:
+            logger.debug(e)
             result = f'Случилась ошибка при попытке выполнить {self.get_command()} {self.get_args()}\n\n' \
                      'Удостовертесь что команда выполнена правильно.\n\nСправка: /help'
 
